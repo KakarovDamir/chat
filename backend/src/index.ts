@@ -51,20 +51,20 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         const disconnectedUser = [...onlineUsers.entries()].find(([key, value]) => value === socket.id);
         if (disconnectedUser) {
-            const [username] = disconnectedUser;
-            onlineUsers.delete(username);
-            io.emit('updateUserStatus', { username, status: 'offline' });
+            const [userId] = disconnectedUser;
+            onlineUsers.delete(userId);
+            io.emit('update_user_list', Array.from(onlineUsers.keys()));
+            console.log(`${userId} disconnected`);
         }
-        console.log('user disconnected');
     });
 
     socket.on('chat message', async (msg) => {
         console.log('message: ', msg);
 
-        const { sender, receiver, message } = msg;
+        const { sender, text, createdAt } = msg;
         try {
-            const addMessage = await ChatService.addMessage(sender, receiver, message);
-            io.emit('chat message', addMessage);
+            const addMessage = await ChatService.addMessage(sender, msg.receiver, text);
+            io.emit('message', addMessage);
         } catch (error) {
             console.error('Error saving message:', error);
         }
