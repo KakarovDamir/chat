@@ -13,12 +13,13 @@ class AuthService {
   private readonly jwtRefreshSecret = process.env.JWT_REFRESH_SECRET!;
 
   async registerUser(createUserDto: CreateUserDto): Promise<IUser> {
-    const { email, password, username } = createUserDto;
+    const { email, password, username, city } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new UserModel({
       email,
       username,
+      city,
       password: hashedPassword,
     });
 
@@ -33,13 +34,8 @@ class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return null;
 
-
     const accessToken = this.generateJwt(user);
-
-
     const refreshToken = this.generateRefreshToken(user);
-    
-
 
     const refreshTokenDoc = new RefreshTokenModel({ token: refreshToken, user: user._id });
     await refreshTokenDoc.save();
@@ -47,36 +43,12 @@ class AuthService {
     return { user, accessToken, refreshToken };
   }
 
-
-
-  async searchUsers(query: string): Promise<IUser[]> {
-    try {
-      let results;
-      if (query) {
-        const searchRegex = new RegExp(query, 'i'); // Case-insensitive search
-        results = await UserModel.find({
-          $or: [
-            { username: { $regex: searchRegex } },
-            { email: { $regex: searchRegex } }
-          ]
-        });
-      } else {
-        results = await UserModel.find(); // Return all users if query is empty
-      }
-      console.log('Search results:', results);
-      return results;
-    } catch (error) {
-      console.error('Error in AuthService searchUsers:', error);
-      throw new Error('Error searching users');
-    }
-  }
-
   private generateJwt(user: IUser): string {
-    return jwt.sign({ id: user._id, email: user.email, username: user.username}, this.jwtSecret, { expiresIn: '40m' });
+    return jwt.sign({ id: user._id, email: user.email, city: user.city }, this.jwtSecret, { expiresIn: '1h' });
   }
 
   private generateRefreshToken(user: IUser): string {
-    return jwt.sign({ id: user._id, email: user.email, username: user.username}, this.jwtRefreshSecret, { expiresIn: '40m' });
+    return jwt.sign({ id: user._id, email: user.email, city: user.city }, this.jwtRefreshSecret, { expiresIn: '7d' });
   }
 
   verifyJwt(token: string): any {
@@ -112,6 +84,14 @@ class AuthService {
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
+
+  async getUserById(id: string): Promise<IUser | null> {
+    return await UserModel.findById(id).exec();
+}
+async getAllUsers(): Promise<IUser[]> {
+  return await UserModel.find().exec();
+}
+
 }
 
 export default AuthService;

@@ -11,11 +11,10 @@ const authController = new AuthController(authService);
 authRouter.post('/register', authController.registerUser);
 authRouter.post('/login', authController.loginUser);
 authRouter.post('/refresh-token', authController.refreshToken);
-authRouter.get('/me', authMiddleware, authController.getCurrentUser);
 
-authRouter.get('/search/:query?', authMiddleware, authController.searchUsers);
+// Новый маршрут для получения всех пользователей
+authRouter.get('/users', authController.getAllUsers);
 
-// Example protected route
 authRouter.get('/protected', authMiddleware, (req, res) => {
   res.json({ message: 'You have access to this route!' });
 });

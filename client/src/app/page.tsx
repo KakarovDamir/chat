@@ -1,15 +1,19 @@
+// Импортируем необходимые зависимости
 'use client'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useUser } from './context/UserContext'; // Импортируем хук useUser
 
 interface User {
   _id: string;
-  username: string;
-  city: string;
+  email: string;
+  city:string;
 }
 
 const HomePage = () => {
+  const { email } = useUser(); // Получаем данные о пользователе из контекста
+
   const [users, setUsers] = useState<User[]>([]);
   const router = useRouter();
 
@@ -30,16 +34,19 @@ const HomePage = () => {
   }, []);
 
   const handleChatOpen = (userId: string) => {
-    router.push(`http://localhost:5000/api/v1/chat/${userId}`);
+    router.push(`/chats/${userId}`);
   };
+
+  // Фильтрация пользователей, исключая текущего пользователя
+  const filteredUsers = users.filter(user => user.email !== email);
 
   return (
     <div>
-      <h1>Users</h1>
-      <ul>
-        {users.map((user) => (
+      <h1 className='text-black'>Users</h1>
+      <ul className='text-black'>
+        {filteredUsers.map((user) => (
           <li key={user._id}>
-            {user.username} - {user.city}
+            {user.email} - {user.city}
             <button onClick={() => handleChatOpen(user._id)}>Chat</button>
           </li>
         ))}

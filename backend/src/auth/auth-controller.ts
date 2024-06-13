@@ -11,21 +11,17 @@ class AuthController {
 
   registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log('Request Body:', req.body); // Log the request body
       const createUserDto: CreateUserDto = req.body;
       const user = await this.authService.registerUser(createUserDto);
       res.status(201).json(user);
     } catch (err) {
-      console.log(err)
       res.status(500).json({ message: 'Error registering user' });
     }
   }
 
   loginUser = async (req: Request, res: Response): Promise<void> => {
-
-
     try {
-      const { email, password } = req.body;  
+      const { email, password } = req.body;
       const result = await this.authService.loginUser(email, password);
       if (!result) {
         res.status(401).json({ message: 'Invalid email or password' });
@@ -37,22 +33,8 @@ class AuthController {
     }
   }
 
-  searchUsers = async (req: Request, res: Response): Promise<void> => {
-    const { query } = req.params;
-    try {
-      console.log("Received search request with query:", query);
-      const users = await this.authService.searchUsers(query || ''); 
-      console.log("Search results:", users);
-      res.status(200).json(users);
-    } catch (error) {
-      console.error('Error in AuthController searchUsers:', error);
-      res.status(500).json({ message: 'Error searching users', error });
-    }
-  }
-  
   refreshToken = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log('Refresh Token Request Body:', req.body); // Log the request body
       const { token } = req.body;
       const result = await this.authService.refreshToken(token);
       if (!result) {
@@ -65,11 +47,15 @@ class AuthController {
     }
   }
 
-
-  getCurrentUser = async (req: Request, res: Response): Promise<void> => {
-    const { user } = req as any;
-    res.status(200).json(user);
+  getAllUsers = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const users = await this.authService.getAllUsers();
+      res.status(200).json(users);
+    } catch (err) {
+      res.status(500).json({ message: 'Error fetching users' });
+    }
   }
 }
+
 
 export default AuthController;
